@@ -178,29 +178,33 @@
     <h1>CFI Orientation Hub 2026</h1>
     <p>Child and Family Institute · Mount Sinai</p>
   </div>
-  <span class="save-indicator" id="save-indicator">auto-saving</span>
-  <button onclick="document.getElementById('sheets-modal').style.display='flex'" style="font-size:11px;padding:4px 10px;border:1px solid rgba(255,255,255,0.3);border-radius:5px;background:transparent;color:#fff;cursor:pointer;" id="sheets-btn">⟳ Sheets</button>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <span class="save-indicator" id="save-indicator">auto-saving</span>
+    <button onclick="exportData()" style="font-size:11px;padding:4px 10px;border:1px solid rgba(255,255,255,0.3);border-radius:5px;background:transparent;color:#fff;cursor:pointer;">↑ Export</button>
+    <button onclick="document.getElementById('import-modal').style.display='flex'" style="font-size:11px;padding:4px 10px;border:1px solid rgba(255,255,255,0.3);border-radius:5px;background:transparent;color:#fff;cursor:pointer;">↓ Import</button>
+  </div>
 </header>
 
-<div id="sheets-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;align-items:center;justify-content:center;">
-  <div style="background:#fff;border-radius:10px;padding:24px;width:480px;max-width:90vw;font-family:-apple-system,sans-serif;">
-    <h3 style="font-size:15px;font-weight:600;margin-bottom:8px;color:#1a1a18">Google Sheets sync</h3>
-    <p style="font-size:12px;color:#6b6b67;margin-bottom:16px;line-height:1.6">Paste your deployed Apps Script URL below to enable cross-device sync. Once connected, data saves to both your browser and your Google Sheet automatically.</p>
-    <div style="margin-bottom:12px">
-      <label style="font-size:11px;font-weight:600;color:#6b6b67;display:block;margin-bottom:4px">Apps Script URL</label>
-      <input id="sheets-url-input" type="text" placeholder="https://script.google.com/macros/s/..." value="${SHEETS_URL||''}" style="width:100%;font-size:12px;padding:6px 8px;border:1px solid #e0deda;border-radius:5px;font-family:inherit" />
+<div id="import-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:10px;padding:24px;width:500px;max-width:90vw;font-family:-apple-system,sans-serif;">
+    <h3 style="font-size:15px;font-weight:600;margin-bottom:8px;color:#1a1a18">Import data</h3>
+    <p style="font-size:12px;color:#6b6b67;margin-bottom:12px;line-height:1.6">Paste your exported data string below. This will replace all current data in the hub.</p>
+    <textarea id="import-input" style="width:100%;height:120px;font-size:11px;font-family:monospace;padding:8px;border:1px solid #e0deda;border-radius:5px;resize:vertical;" placeholder="Paste exported data here…"></textarea>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;">
+      <button onclick="document.getElementById('import-modal').style.display='none'" style="font-size:12px;padding:6px 14px;border:1px solid #e0deda;border-radius:5px;background:#fff;cursor:pointer;color:#6b6b67">Cancel</button>
+      <button onclick="importData()" style="font-size:12px;padding:6px 14px;border:none;border-radius:5px;background:#002060;color:#fff;cursor:pointer">Import</button>
     </div>
-    <div style="font-size:11px;color:#6b6b67;background:#f5f5f3;border-radius:6px;padding:10px;margin-bottom:16px;line-height:1.7">
-      <strong>Setup steps:</strong><br>
-      1. Open your Google Sheet → Extensions → Apps Script<br>
-      2. Paste the contents of <code>CFI_AppsScript.gs</code><br>
-      3. Click Deploy → New deployment → Web app<br>
-      4. Set "Execute as: Me" and "Access: Anyone"<br>
-      5. Copy the deployment URL and paste it above
-    </div>
-    <div style="display:flex;gap:8px;justify-content:flex-end">
-      <button onclick="document.getElementById('sheets-modal').style.display='none'" style="font-size:12px;padding:6px 14px;border:1px solid #e0deda;border-radius:5px;background:#fff;cursor:pointer;color:#6b6b67">Cancel</button>
-      <button onclick="setSheetsUrl(document.getElementById('sheets-url-input').value);document.getElementById('sheets-modal').style.display='none';updateSheetsBtn()" style="font-size:12px;padding:6px 14px;border:none;border-radius:5px;background:#002060;color:#fff;cursor:pointer">Connect + sync now</button>
+  </div>
+</div>
+
+<div id="export-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:10px;padding:24px;width:500px;max-width:90vw;font-family:-apple-system,sans-serif;">
+    <h3 style="font-size:15px;font-weight:600;margin-bottom:8px;color:#1a1a18">Export data</h3>
+    <p style="font-size:12px;color:#6b6b67;margin-bottom:12px;line-height:1.6">Copy this text and save it somewhere (email draft, note, message to yourself). Paste it into Import on another device to restore your data.</p>
+    <textarea id="export-output" style="width:100%;height:120px;font-size:11px;font-family:monospace;padding:8px;border:1px solid #e0deda;border-radius:5px;resize:vertical;background:#f5f5f3;" readonly></textarea>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;">
+      <button onclick="document.getElementById('export-modal').style.display='none'" style="font-size:12px;padding:6px 14px;border:1px solid #e0deda;border-radius:5px;background:#fff;cursor:pointer;color:#6b6b67">Close</button>
+      <button onclick="copyExport()" id="copy-btn" style="font-size:12px;padding:6px 14px;border:none;border-radius:5px;background:#002060;color:#fff;cursor:pointer">Copy to clipboard</button>
     </div>
   </div>
 </div>
@@ -221,104 +225,51 @@
 const STORAGE_KEY = 'cfi_caseload_2526_v2';
 const TASKS_KEY = 'cfi_tasks_2526_v5';
 
-// ---- GOOGLE SHEETS SYNC ----
-// Paste your deployed Apps Script URL here after setup:
-let SHEETS_URL = 'https://script.google.com/macros/s/AKfycbxpLfrwWfxXYi5269pd6EAQnCKHKyhIvC5nb4sIJezY1El5aTFGKwNJMFZgk1xtgvpamA/exec';
+// ---- EXPORT / IMPORT (cross-device sync) ----
 
-function jsonp(url) {
-  return new Promise((resolve, reject) => {
-    const cb = 'jsonpCb_' + Math.random().toString(36).slice(2);
-    const script = document.createElement('script');
-    // Google Apps Script redirects, so we need to follow it
-    // Use the /dev URL pattern which avoids the redirect
-    script.src = url + '&callback=' + cb;
-    script.crossOrigin = 'anonymous';
-    let settled = false;
-    const timeout = setTimeout(() => {
-      if (settled) return;
-      settled = true;
-      delete window[cb];
-      if (script.parentNode) document.body.removeChild(script);
-      // On timeout, assume save succeeded (Google redirect causes false timeout)
-      resolve({ ok: true, timedOut: true });
-    }, 8000);
-    window[cb] = (data) => {
-      if (settled) return;
-      settled = true;
-      clearTimeout(timeout);
-      delete window[cb];
-      if (script.parentNode) document.body.removeChild(script);
-      resolve(data);
-    };
-    script.onerror = () => {
-      if (settled) return;
-      settled = true;
-      clearTimeout(timeout);
-      delete window[cb];
-      if (script.parentNode) document.body.removeChild(script);
-      // onerror on save often means Google redirected — assume success
-      resolve({ ok: true, redirected: true });
-    };
-    document.body.appendChild(script);
+/* ---- EXPORT / IMPORT ---- */
+function exportData() {
+  const exportPayload = {
+    caseload: JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'),
+    tasks: JSON.parse(localStorage.getItem(TASKS_KEY) || '[]'),
+    v: 1
+  };
+  const str = btoa(JSON.stringify(exportPayload));
+  document.getElementById('export-output').value = str;
+  document.getElementById('export-modal').style.display = 'flex';
+}
+
+function copyExport() {
+  const ta = document.getElementById('export-output');
+  ta.select();
+  navigator.clipboard.writeText(ta.value).then(() => {
+    const btn = document.getElementById('copy-btn');
+    btn.textContent = 'Copied ✓';
+    setTimeout(() => { btn.textContent = 'Copy to clipboard'; }, 2000);
+  }).catch(() => {
+    document.execCommand('copy');
+    document.getElementById('copy-btn').textContent = 'Copied ✓';
+    setTimeout(() => { document.getElementById('copy-btn').textContent = 'Copy to clipboard'; }, 2000);
   });
 }
 
-async function sheetsLoad() {
-  if (!SHEETS_URL) return null;
+function importData() {
+  const str = document.getElementById('import-input').value.trim();
+  if (!str) return;
   try {
-    const data = await jsonp(`${SHEETS_URL}?action=load`);
-    return data.ok ? data.data : null;
-  } catch(e) { console.warn('Sheets load failed:', e); return null; }
-}
-
-async function sheetsSave(payload) {
-  if (!SHEETS_URL) return false;
-  try {
-    // text/plain is allowed in no-cors mode without preflight
-    await fetch(SHEETS_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({ action: 'save', payload: payload })
-    });
-    return true;
-  } catch(e) {
-    console.warn('Sheets save failed:', e);
-    return false;
-  }
-}
-
-function setSheetsUrl(url) {
-  SHEETS_URL = url.trim();
-  localStorage.setItem('cfi_sheets_url', SHEETS_URL);
-  syncFromSheets();
-}
-
-async function syncFromSheets() {
-  const el = document.getElementById('save-indicator');
-  el.textContent = 'syncing…'; el.className = 'save-indicator saving';
-  const data = await sheetsLoad();
-  if (data) {
-    if (data.cfi_caseload) {
-      Object.assign(state, data.cfi_caseload);
-      const stateWithoutTasks = Object.fromEntries(Object.entries(state).filter(([k]) => k !== 'tasks'));
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(stateWithoutTasks));
-    }
-    if (data.cfi_tasks) {
-      state.tasks = data.cfi_tasks;
-      state.tasks.forEach(t => {
-        if (!t.status) t.status = 'todo';
-        if (t.userNotes === undefined) t.userNotes = '';
-        if (t.dueDate === undefined) t.dueDate = '';
-      });
-      localStorage.setItem(TASKS_KEY, JSON.stringify(state.tasks));
-    }
+    const data = JSON.parse(atob(str));
+    if (data.caseload) localStorage.setItem(STORAGE_KEY, JSON.stringify(data.caseload));
+    if (data.tasks) localStorage.setItem(TASKS_KEY, JSON.stringify(data.tasks));
+    document.getElementById('import-modal').style.display = 'none';
+    document.getElementById('import-input').value = '';
+    loadState();
     renderAll();
-    el.textContent = 'synced ✓'; el.className = 'save-indicator saved';
-  } else {
-    el.textContent = 'sync failed'; el.className = 'save-indicator saving';
+    const el = document.getElementById('save-indicator');
+    el.textContent = 'imported ✓'; el.className = 'save-indicator saved';
+    setTimeout(() => { el.textContent = 'auto-saving'; el.className = 'save-indicator'; }, 2500);
+  } catch(e) {
+    alert('Invalid data — make sure you pasted the full export string.');
   }
-  setTimeout(() => { el.textContent = 'auto-saving'; el.className = 'save-indicator'; }, 2500);
 }
 
 const DEFAULTS = {
@@ -530,20 +481,14 @@ function scheduleSave() {
   const el = document.getElementById('save-indicator');
   el.textContent = 'saving…'; el.className = 'save-indicator saving';
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(async () => {
+  saveTimer = setTimeout(() => {
     try {
       const tasksToSave = state.tasks;
       const stateWithoutTasks = Object.fromEntries(Object.entries(state).filter(([k]) => k !== 'tasks'));
       localStorage.setItem(STORAGE_KEY, JSON.stringify(stateWithoutTasks));
       localStorage.setItem(TASKS_KEY, JSON.stringify(tasksToSave));
-      if (SHEETS_URL) {
-        const ok = await sheetsSave({ cfi_caseload: stateWithoutTasks, cfi_tasks: tasksToSave });
-        el.textContent = ok ? 'saved + synced ✓' : 'saved locally (sync failed)';
-      } else {
-        el.textContent = 'saved';
-      }
-      el.className = 'save-indicator saved';
-      setTimeout(() => { el.textContent = 'auto-saving'; el.className = 'save-indicator'; }, 2500);
+      el.textContent = 'saved'; el.className = 'save-indicator saved';
+      setTimeout(() => { el.textContent = 'auto-saving'; el.className = 'save-indicator'; }, 2000);
     } catch(e) {
       el.textContent = 'save failed'; el.className = 'save-indicator saving';
     }
@@ -1215,32 +1160,8 @@ function renderAll() {
   renderDidactics();
 }
 
-function updateSheetsBtn() {
-  const btn = document.getElementById('sheets-btn');
-  if (btn) btn.textContent = SHEETS_URL ? '⟳ Sheets ✓' : '⟳ Sheets';
-}
-
-async function initApp() {
+function initApp() {
   loadState();
-  updateSheetsBtn();
-  if (SHEETS_URL) {
-    const data = await sheetsLoad();
-    if (data) {
-      if (data.cfi_caseload) Object.assign(state, data.cfi_caseload);
-      if (data.cfi_tasks) {
-        state.tasks = data.cfi_tasks;
-        state.tasks.forEach(t => {
-          if (!t.status) t.status = 'todo';
-          if (t.userNotes === undefined) t.userNotes = '';
-          if (t.dueDate === undefined) t.dueDate = '';
-        });
-        const savedIds = new Set(state.tasks.map(t => t.id));
-        DEFAULTS.tasks.forEach(dt => { if (!savedIds.has(dt.id)) state.tasks.push(JSON.parse(JSON.stringify(dt))); });
-        state.tasks = state.tasks.filter(t => ![38,39].includes(t.id));
-      }
-      renderAll();
-    }
-  }
 }
 
 initApp();

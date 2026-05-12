@@ -1162,6 +1162,11 @@ function renderAll() {
 
 function initApp() {
   loadState();
+  window.addEventListener('beforeunload', function(e) {
+    e.preventDefault();
+    e.returnValue = 'Did you export your data before leaving? Use the ↑ Export button to save your work for other devices.';
+    return e.returnValue;
+  });
 }
 
 initApp();

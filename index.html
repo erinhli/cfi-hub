@@ -225,48 +225,46 @@ const TASKS_KEY = 'cfi_tasks_2526_v5';
 // Paste your deployed Apps Script URL here after setup:
 let SHEETS_URL = 'https://script.google.com/macros/s/AKfycbw5viQL37eb-NcjBtg85p-rkZzJBjwbAstRWgMKop0DLMtJKoeESFw7tVHNU1MgG679UQ/exec';
 
+function jsonp(url) {
+  return new Promise((resolve, reject) => {
+    const cb = 'jsonpCb_' + Math.random().toString(36).slice(2);
+    const script = document.createElement('script');
+    script.src = url + '&callback=' + cb;
+    const timeout = setTimeout(() => {
+      delete window[cb];
+      if (script.parentNode) document.body.removeChild(script);
+      reject(new Error('JSONP timeout'));
+    }, 10000);
+    window[cb] = (data) => {
+      clearTimeout(timeout);
+      delete window[cb];
+      if (script.parentNode) document.body.removeChild(script);
+      resolve(data);
+    };
+    script.onerror = () => {
+      clearTimeout(timeout);
+      delete window[cb];
+      if (script.parentNode) document.body.removeChild(script);
+      reject(new Error('JSONP error'));
+    };
+    document.body.appendChild(script);
+  });
+}
+
 async function sheetsLoad() {
   if (!SHEETS_URL) return null;
   try {
-    // Use no-cors for load too — Apps Script redirects, so we use a form POST
-    const res = await fetch(`${SHEETS_URL}?action=load`, {
-      method: 'GET',
-      mode: 'no-cors',
-    });
-    // no-cors returns opaque response, so we can't read it directly
-    // Instead use a hidden iframe trick for load, or fall back to stored data
-    return null;
-  } catch(e) { return null; }
+    const data = await jsonp(`${SHEETS_URL}?action=load`);
+    return data.ok ? data.data : null;
+  } catch(e) { console.warn('Sheets load failed:', e); return null; }
 }
 
 async function sheetsSave(payload) {
-  if (!SHEETS_URL) return;
+  if (!SHEETS_URL) return false;
   try {
-    // Use a form POST with no-cors — this bypasses CORS and still delivers data to Apps Script
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = SHEETS_URL;
-    form.target = 'hidden-iframe';
-    form.style.display = 'none';
-    const actionInput = document.createElement('input');
-    actionInput.name = 'action'; actionInput.value = 'save';
-    const payloadInput = document.createElement('input');
-    payloadInput.name = 'payload'; payloadInput.value = JSON.stringify(payload);
-    form.appendChild(actionInput);
-    form.appendChild(payloadInput);
-    // Create hidden iframe to receive response
-    let iframe = document.getElementById('hidden-iframe');
-    if (!iframe) {
-      iframe = document.createElement('iframe');
-      iframe.name = 'hidden-iframe';
-      iframe.id = 'hidden-iframe';
-      iframe.style.display = 'none';
-      document.body.appendChild(iframe);
-    }
-    document.body.appendChild(form);
-    form.submit();
-    document.body.removeChild(form);
-  } catch(e) { /* silent fail */ }
+    const data = await jsonp(`${SHEETS_URL}?action=save&payload=${encodeURIComponent(JSON.stringify(payload))}`);
+    return data.ok;
+  } catch(e) { console.warn('Sheets save failed:', e); return false; }
 }
 
 function setSheetsUrl(url) {
@@ -276,12 +274,30 @@ function setSheetsUrl(url) {
 }
 
 async function syncFromSheets() {
-  // With no-cors, we can write to Sheets but can't read back
-  // Sheets acts as a write-only backup from the browser
-  // To restore data from Sheets, use the manual import below
   const el = document.getElementById('save-indicator');
-  el.textContent = 'saved to Sheets'; el.className = 'save-indicator saved';
-  setTimeout(() => { el.textContent = 'auto-saving'; el.className = 'save-indicator'; }, 2000);
+  el.textContent = 'syncing…'; el.className = 'save-indicator saving';
+  const data = await sheetsLoad();
+  if (data) {
+    if (data.cfi_caseload) {
+      Object.assign(state, data.cfi_caseload);
+      const stateWithoutTasks = Object.fromEntries(Object.entries(state).filter(([k]) => k !== 'tasks'));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(stateWithoutTasks));
+    }
+    if (data.cfi_tasks) {
+      state.tasks = data.cfi_tasks;
+      state.tasks.forEach(t => {
+        if (!t.status) t.status = 'todo';
+        if (t.userNotes === undefined) t.userNotes = '';
+        if (t.dueDate === undefined) t.dueDate = '';
+      });
+      localStorage.setItem(TASKS_KEY, JSON.stringify(state.tasks));
+    }
+    renderAll();
+    el.textContent = 'synced ✓'; el.className = 'save-indicator saved';
+  } else {
+    el.textContent = 'sync failed'; el.className = 'save-indicator saving';
+  }
+  setTimeout(() => { el.textContent = 'auto-saving'; el.className = 'save-indicator'; }, 2500);
 }
 
 const DEFAULTS = {
@@ -499,13 +515,14 @@ function scheduleSave() {
       const stateWithoutTasks = Object.fromEntries(Object.entries(state).filter(([k]) => k !== 'tasks'));
       localStorage.setItem(STORAGE_KEY, JSON.stringify(stateWithoutTasks));
       localStorage.setItem(TASKS_KEY, JSON.stringify(tasksToSave));
-      // Also push to Google Sheets if configured
       if (SHEETS_URL) {
-        sheetsSave({ cfi_caseload: stateWithoutTasks, cfi_tasks: tasksToSave });
+        const ok = await sheetsSave({ cfi_caseload: stateWithoutTasks, cfi_tasks: tasksToSave });
+        el.textContent = ok ? 'saved + synced ✓' : 'saved locally (sync failed)';
+      } else {
+        el.textContent = 'saved';
       }
-      el.textContent = SHEETS_URL ? 'saved + synced ✓' : 'saved'; 
       el.className = 'save-indicator saved';
-      setTimeout(() => { el.textContent = 'auto-saving'; el.className = 'save-indicator'; }, 2000);
+      setTimeout(() => { el.textContent = 'auto-saving'; el.className = 'save-indicator'; }, 2500);
     } catch(e) {
       el.textContent = 'save failed'; el.className = 'save-indicator saving';
     }
@@ -1185,6 +1202,24 @@ function updateSheetsBtn() {
 async function initApp() {
   loadState();
   updateSheetsBtn();
+  if (SHEETS_URL) {
+    const data = await sheetsLoad();
+    if (data) {
+      if (data.cfi_caseload) Object.assign(state, data.cfi_caseload);
+      if (data.cfi_tasks) {
+        state.tasks = data.cfi_tasks;
+        state.tasks.forEach(t => {
+          if (!t.status) t.status = 'todo';
+          if (t.userNotes === undefined) t.userNotes = '';
+          if (t.dueDate === undefined) t.dueDate = '';
+        });
+        const savedIds = new Set(state.tasks.map(t => t.id));
+        DEFAULTS.tasks.forEach(dt => { if (!savedIds.has(dt.id)) state.tasks.push(JSON.parse(JSON.stringify(dt))); });
+        state.tasks = state.tasks.filter(t => ![38,39].includes(t.id));
+      }
+      renderAll();
+    }
+  }
 }
 
 initApp();

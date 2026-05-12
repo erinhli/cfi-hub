@@ -223,7 +223,7 @@ const TASKS_KEY = 'cfi_tasks_2526_v5';
 
 // ---- GOOGLE SHEETS SYNC ----
 // Paste your deployed Apps Script URL here after setup:
-let SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzwVvU7N99IztEyrMwMCoWlnwUu_Cx9NJ8UZBdG0DCwI3c3IAbogZisQ5uocPlKvWmjlg/exec';
+let SHEETS_URL = 'https://script.google.com/macros/s/AKfycbxpLfrwWfxXYi5269pd6EAQnCKHKyhIvC5nb4sIJezY1El5aTFGKwNJMFZgk1xtgvpamA/exec';
 
 function jsonp(url) {
   return new Promise((resolve, reject) => {
@@ -274,14 +274,13 @@ async function sheetsLoad() {
 async function sheetsSave(payload) {
   if (!SHEETS_URL) return false;
   try {
-    // Use fetch with no-cors — can't read response but data reaches the script
+    // text/plain is allowed in no-cors mode without preflight
     await fetch(SHEETS_URL, {
       method: 'POST',
       mode: 'no-cors',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: `action=save&payload=${encodeURIComponent(JSON.stringify(payload))}`
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: 'save', payload: payload })
     });
-    // no-cors means we can't verify success, but if no exception = data sent
     return true;
   } catch(e) {
     console.warn('Sheets save failed:', e);

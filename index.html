@@ -223,7 +223,7 @@
 <script>
 // Hosted at: https://erinhli.github.io/cfi-hub/
 const STORAGE_KEY = 'cfi_caseload_2526_v2';
-const TASKS_KEY = 'cfi_tasks_2526_v5';
+const TASKS_KEY = 'cfi_tasks_2526_v6';
 
 // ---- EXPORT / IMPORT (cross-device sync) ----
 
@@ -286,7 +286,8 @@ const DEFAULTS = {
     {id:41,task:'Get possible supervision times from Ivanov, Johnson, Mauch, and self',phase:'now',owner:'Erin',priority:'med',status:'todo',notes:'For PGY3 supervision group scheduling.',userNotes:'',dueDate:''},
     {id:9,task:'PGY3 handoff spreadsheet — share with outgoing PGY3s for CFI patients',phase:'pre',owner:'Erin',priority:'high',status:'todo',notes:'Existing spreadsheet. Before signout day.',userNotes:'',dueDate:'2026-06-02'},
     {id:10,task:'CAP handoff spreadsheet — create new and share with outgoing CAP1s + CAP2s',phase:'pre',owner:'Erin',priority:'high',status:'todo',notes:'New spreadsheet, same columns as PGY3 version.',userNotes:'',dueDate:'2026-06-02'},
-    {id:12,task:'CAP1 CAFS vs CFI placement — confirm 2 going to CAFS',phase:'pre',owner:'Erin',priority:'high',status:'todo',notes:'Update incoming CAP1 placement in hub.',userNotes:'',dueDate:''},
+    {id:42,task:'Plan additional child experiences for VA residents',phase:'pre',owner:'Erin',priority:'med',status:'todo',notes:'Options: pair with another resident, inpatient, AHC.',userNotes:'',dueDate:''},
+    {id:43,task:'PGY3 master schedules — plan template',phase:'pre',owner:'Erin',priority:'med',status:'todo',notes:'1–2 hours on 1–2 days.',userNotes:'',dueDate:''},
     {id:13,task:'Confirm orientation session dates (CAP1, CAP2, PGY3)',phase:'pre',owner:'Erin',priority:'high',status:'todo',notes:'Suggested: Jul 1 CAP1 general, Jul 6 CAP2, Jul 7 PGY3 clinic, Jul 8 CAP1 clinic, Jul 14 PGY3 intake.',userNotes:'',dueDate:''},
     {id:14,task:'Confirm CAP fellow start dates and credentialing status',phase:'pre',owner:'Erin',priority:'med',status:'todo',notes:'Coordinate with GME office.',userNotes:'',dueDate:''},
     {id:15,task:'Finalize orientation schedule and send to fellows',phase:'pre',owner:'Erin',priority:'med',status:'todo',notes:'',userNotes:'',dueDate:''},
@@ -805,9 +806,9 @@ function renderIncPgy3() {
   document.getElementById('inc-pgy3-body').innerHTML = state.incPgy3.map((f, i) => {
     if (f.va) return `<tr class="va-row">
       <td><input class="ti" placeholder="VA resident (TBD)" value="${f.name}" oninput="state.incPgy3[${i}].name=this.value;save()" /><span class="chip chip-va">VA</span><span class="chip chip-nocases">no cases</span></td>
-      <td style="color:var(--text-faint)">—</td>
-      <td style="color:var(--text-faint)">—</td>
-      <td style="color:var(--text-faint)">—</td>
+      <td><input class="ti" placeholder="Languages" value="${f.lang}" oninput="state.incPgy3[${i}].lang=this.value;save()" /></td>
+      <td><span style="color:var(--text-faint)">—</span></td>
+      <td><span style="color:var(--text-faint)">—</span></td>
     </tr>`;
     return `<tr>
       <td>${f.name}</td>

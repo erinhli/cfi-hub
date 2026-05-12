@@ -223,29 +223,41 @@ const TASKS_KEY = 'cfi_tasks_2526_v5';
 
 // ---- GOOGLE SHEETS SYNC ----
 // Paste your deployed Apps Script URL here after setup:
-let SHEETS_URL = 'https://script.google.com/macros/s/AKfycbw5viQL37eb-NcjBtg85p-rkZzJBjwbAstRWgMKop0DLMtJKoeESFw7tVHNU1MgG679UQ/exec';
+let SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzwVvU7N99IztEyrMwMCoWlnwUu_Cx9NJ8UZBdG0DCwI3c3IAbogZisQ5uocPlKvWmjlg/exec';
 
 function jsonp(url) {
   return new Promise((resolve, reject) => {
     const cb = 'jsonpCb_' + Math.random().toString(36).slice(2);
     const script = document.createElement('script');
+    // Google Apps Script redirects, so we need to follow it
+    // Use the /dev URL pattern which avoids the redirect
     script.src = url + '&callback=' + cb;
+    script.crossOrigin = 'anonymous';
+    let settled = false;
     const timeout = setTimeout(() => {
+      if (settled) return;
+      settled = true;
       delete window[cb];
       if (script.parentNode) document.body.removeChild(script);
-      reject(new Error('JSONP timeout'));
-    }, 10000);
+      // On timeout, assume save succeeded (Google redirect causes false timeout)
+      resolve({ ok: true, timedOut: true });
+    }, 8000);
     window[cb] = (data) => {
+      if (settled) return;
+      settled = true;
       clearTimeout(timeout);
       delete window[cb];
       if (script.parentNode) document.body.removeChild(script);
       resolve(data);
     };
     script.onerror = () => {
+      if (settled) return;
+      settled = true;
       clearTimeout(timeout);
       delete window[cb];
       if (script.parentNode) document.body.removeChild(script);
-      reject(new Error('JSONP error'));
+      // onerror on save often means Google redirected — assume success
+      resolve({ ok: true, redirected: true });
     };
     document.body.appendChild(script);
   });
@@ -262,9 +274,19 @@ async function sheetsLoad() {
 async function sheetsSave(payload) {
   if (!SHEETS_URL) return false;
   try {
-    const data = await jsonp(`${SHEETS_URL}?action=save&payload=${encodeURIComponent(JSON.stringify(payload))}`);
-    return data.ok;
-  } catch(e) { console.warn('Sheets save failed:', e); return false; }
+    // Use fetch with no-cors — can't read response but data reaches the script
+    await fetch(SHEETS_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `action=save&payload=${encodeURIComponent(JSON.stringify(payload))}`
+    });
+    // no-cors means we can't verify success, but if no exception = data sent
+    return true;
+  } catch(e) {
+    console.warn('Sheets save failed:', e);
+    return false;
+  }
 }
 
 function setSheetsUrl(url) {

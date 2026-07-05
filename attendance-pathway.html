@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CFI OPD — Attendance Pathway</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy-900:#0B2545; --navy-700:#1B3B6F; --cyan-500:#00AEEF;
+    --paper:#F6F7FA; --card:#FFFFFF; --ink:#0F1B2D; --muted:#5B6B82;
+    --good:#2F7D5B; --alert:#B3261E; --line:#D8DEE7;
+    --radius:14px; --shadow: 0 1px 2px rgba(15,27,45,0.04), 0 8px 24px rgba(15,27,45,0.06);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--paper); color:var(--ink); font-family:'Inter',system-ui,sans-serif; line-height:1.45; min-height:100vh;}
+  h1,h2,h3{font-family:'Fraunces',serif; font-weight:600; margin:0; letter-spacing:-0.01em;}
+  .app{max-width:1040px; margin:0 auto; padding:32px 20px 80px;}
+  header.top{display:flex; align-items:baseline; justify-content:space-between; gap:16px; margin-bottom:32px; flex-wrap:wrap;}
+  .brand{display:flex; flex-direction:column; gap:2px;}
+  .brand .eyebrow{font-size:12px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:var(--cyan-500);}
+  .brand .name{font-size:15px; font-weight:600; color:var(--navy-900);}
+  .restart-link{font-size:13px; color:var(--muted); text-decoration:none; background:none; border:none; cursor:pointer; font-family:inherit; padding:4px 0;}
+  .restart-link:hover, .restart-link:focus-visible{color:var(--navy-700);}
+
+  .intro{margin-bottom:32px;}
+  .intro h1{font-size:clamp(24px,3.4vw,32px); color:var(--navy-900); max-width:22ch;}
+  .intro p{margin-top:10px; color:var(--muted); font-size:15px; max-width:56ch;}
+
+  .wizard{display:grid; grid-template-columns:230px 1fr; gap:32px; align-items:start;}
+  @media (max-width:760px){ .wizard{grid-template-columns:1fr;} }
+  .rail{position:relative; padding-left:20px;}
+  .rail-title{font-size:12px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:var(--muted); margin:0 0 16px 0; padding-left:20px;}
+  .rail-line{position:absolute; left:20px; top:8px; bottom:8px; width:2px; background:var(--line);}
+  .rail-step{position:relative; padding:0 0 20px 20px; font-size:13px; color:var(--muted);}
+  .rail-step:last-child{padding-bottom:0;}
+  .rail-step::before{content:""; position:absolute; left:-25px; top:2px; width:10px; height:10px; border-radius:50%; background:var(--paper); border:2px solid var(--line);}
+  .rail-step.done::before{background:var(--navy-700); border-color:var(--navy-700);}
+  .rail-step.current{color:var(--navy-900); font-weight:600;}
+  .rail-step.current::before{background:var(--cyan-500); border-color:var(--cyan-500); box-shadow:0 0 0 3px rgba(0,174,239,0.25);}
+  .rail-step.end.done::before{background:var(--good); border-color:var(--good);}
+  .rail-step.alert.done::before{background:var(--alert); border-color:var(--alert);}
+
+  .stage{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:36px; box-shadow:var(--shadow); min-height:280px; display:flex; flex-direction:column;}
+  .stage-kicker{font-size:12px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:var(--cyan-500); margin-bottom:10px;}
+  .stage h2{font-size:24px; color:var(--navy-900); max-width:30ch;}
+  .stage .note{margin-top:14px; color:var(--muted); font-size:15.5px; max-width:52ch; white-space:pre-line;}
+  .stage.tone-alert .stage-kicker{color:var(--alert);}
+  .stage.tone-good .stage-kicker{color:var(--good);}
+  .stage.tone-alert{border-color:#e7b9b6;}
+  .stage.tone-good{border-color:#bfe0cd;}
+
+  .actions{margin-top:26px; display:flex; flex-wrap:wrap; gap:12px;}
+  .btn{font-family:inherit; font-size:15px; font-weight:600; border-radius:10px; padding:12px 20px; border:1px solid transparent; cursor:pointer; transition:opacity 0.15s ease; text-align:left;}
+  .btn:focus-visible{outline:3px solid var(--cyan-500); outline-offset:2px;}
+  .btn-primary{background:var(--navy-900); color:#fff;}
+  .btn-primary:hover{opacity:0.9;}
+  .btn-outline{background:transparent; border-color:var(--line); color:var(--navy-900);}
+  .btn-outline:hover{border-color:var(--navy-700);}
+
+  .footer-nav{margin-top:26px; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;}
+  .back-link{font-size:13px; color:var(--muted); background:none; border:none; cursor:pointer; font-family:inherit; padding:4px 0;}
+  .back-link:hover, .back-link:focus-visible{color:var(--navy-700);}
+
+  .end-badge{display:inline-flex; align-items:center; gap:8px; font-size:13px; font-weight:600; padding:6px 12px; border-radius:999px; background:var(--navy-900); color:#fff; width:fit-content; margin-bottom:16px;}
+  .stage.tone-alert .end-badge{background:var(--alert);}
+  .stage.tone-good .end-badge{background:var(--good);}
+
+  .source-note{margin-top:44px; font-size:12px; color:var(--muted); border-top:1px solid var(--line); padding-top:16px;}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+const START = "n0";
+const NODES = {
+  n0: { type:"decision", title:"What is the patient's current risk level?", note:"Per the most recent SRA/VRA on file.", options:[
+        {label:"Low risk", next:"a1"},
+        {label:"Moderate or high risk", next:"b1"}
+      ]},
+
+  /* ---------------- TRACK A: LOW RISK ---------------- */
+  a1: { type:"decision", title:"What's happening with attendance?", options:[
+        {label:"One late arrival", next:"a_end_late"},
+        {label:"Routine lateness / occasional no-shows, not yet a pattern", next:"a_end_explore"},
+        {label:"2 consecutive missed sessions, or attendance is interfering with treatment", next:"a2"}
+      ]},
+  a_end_late:{ type:"end", tone:"neutral", badge:"No escalation needed", title:"Use clinical discretion", note:"You may choose to see the patient anyway. Discuss the impact on the treatment relationship in supervision." },
+  a_end_explore:{ type:"end", tone:"neutral", badge:"No escalation needed", title:"Explore in treatment", note:"Logistical barriers: work with the family to problem-solve. Ambivalence or clinical process: explore in therapy." },
+
+  a2: { type:"decision", title:"Still in contact with the patient/family?", options:[
+        {label:"Yes", next:"a3a"},
+        {label:"No", next:"a3b"}
+      ]},
+  a3a:{ type:"action", title:"Attendance contract", note:"Patient must attend 3 of the next 4 scheduled appointments, coordinated across all modalities. Rescheduling with >24hrs notice counts as attendance; lateness >15 min counts as a no-show.\n\nIf the patient has multiple modalities (e.g. therapy, meds), providers should discuss beforehand whether the contract covers all modalities jointly (full discharge) or applies per modality (e.g. therapy only, meds only) — and agree on this before the contract is issued.\n\nUpload the signed contract (English/Spanish) to Epic.", next:"a4a" },
+  a3b:{ type:"action", title:"Warning letter", note:"Document all outreach in Epic first. The letter states the case will close if there's no response within 2 weeks of the letter date.\n\nUpload the signed letter to Epic.", next:"a4b" },
+
+  a4a:{ type:"decision", title:"Did the patient keep at least 3 of the 4 appointments?", options:[
+        {label:"Yes", next:"a_end_continue"},
+        {label:"No", next:"a5_low"}
+      ]},
+  a4b:{ type:"decision", title:"Did the family respond by the deadline?", options:[
+        {label:"Yes", next:"a_end_reengage"},
+        {label:"No", next:"a5_low"}
+      ]},
+  a_end_continue:{ type:"end", tone:"good", badge:"Case continues", title:"Continue treatment", note:"Resume normal scheduling." },
+  a_end_reengage:{ type:"end", tone:"good", badge:"Case continues", title:"Re-engaged", note:"Resume normal scheduling." },
+
+  a5_low:{ type:"action", title:"Complete discharge documentation", note:"Discuss with your supervisor and note this in the discharge summary. Update SRA/VRA and CGI. Complete the discharge summary within 10 days (SmartText 2101600002). Cosign to Erin Li or the covering attending MD. Send a discharge letter to the legal guardian. If referring out, send the summary to the new agency after obtaining consent.", next:"a6_low" },
+  a6_low:{ type:"end", tone:"neutral", badge:"Case closes", title:"Present at dispo", note:"All documentation above must be complete before presenting.\n\nQuestions about dispo? Reach out to Erin Li and Alexza Gutierrez before signing up for a slot." },
+
+  /* ---------------- TRACK B: MODERATE/HIGH RISK ---------------- */
+  b1: { type:"action", title:"1st no-show", note:"Outreach the patient/caregiver immediately. Document all outreach attempts in Epic.", next:"b2" },
+  b2: { type:"decision", title:"Did outreach surface an acute safety concern?", note:"E.g. disclosure of imminent risk or a crisis presenting during the call.", options:[
+        {label:"Yes", next:"b_end_crisis"},
+        {label:"No / no response", next:"b3"}
+      ]},
+  b_end_crisis:{ type:"end", tone:"alert", badge:"Crisis protocol", title:"Activate Crisis Protocol", note:"This is no longer an attendance issue — follow the Crisis Protocol.\n\nCall 911 for emergencies. For uncooperative patients or situations requiring police, call 911 AND the Mount Sinai Transfer Center (646-605-5902) simultaneously — patient goes with whichever arrives first. Transfer Center alone is for voluntary patients (~25–30 min wait)." },
+
+  b3: { type:"decision", title:"Was contact re-established through that outreach?", options:[
+        {label:"Yes", next:"b4a"},
+        {label:"No", next:"b4b"}
+      ]},
+
+  b4a:{ type:"action", title:"Attendance contract (elevated risk)", note:"Same 3-of-4 mechanics as the standard contract, but you must explicitly disclose: failing this contract means ACS will be notified for medical neglect.\n\nIf the patient has multiple modalities, providers should discuss beforehand whether the contract covers all modalities jointly or applies per modality — and agree on this before the contract is issued.\n\nUpload the signed contract to Epic.", next:"b5a" },
+  b5a:{ type:"decision", title:"Did the patient keep at least 3 of the 4 appointments?", options:[
+        {label:"Yes", next:"b_end_reengage"},
+        {label:"No", next:"b_acs"}
+      ]},
+
+  b4b:{ type:"action", title:"2nd no-show, still no response", note:"Activate mobile crisis. Send a warning letter stating that services will terminate — and ACS will be activated — if there's no response within 2 weeks.\n\nUpload the signed letter to Epic.", next:"b5b" },
+  b5b:{ type:"decision", title:"Did the family respond by the letter's deadline?", options:[
+        {label:"Yes", next:"b_end_reengage"},
+        {label:"No", next:"b_acs"}
+      ]},
+
+  b_end_reengage:{ type:"end", tone:"good", badge:"Case continues", title:"Re-engaged", note:"Resume normal scheduling. Continue elevated-risk SRA/VRA monitoring at the required frequency (quarterly for moderate/high risk under 18)." },
+
+  b_acs:{ type:"action", title:"Activate ACS", note:"Document the accepted case number and the name of the person you spoke with at ACS, using a Miscellaneous Encounter in Epic. Complete the LDSS-2221A form and submit it to your supervisor and clinic leadership (Medical Director + Clinical Director + Deborah Chin) for review. Make a copy for Deborah Chin — do not upload the form to the patient's Epic chart. Mail within 48 hours to the local ACS office in the patient's borough.", next:"b_discharge_docs" },
+  b_discharge_docs:{ type:"action", title:"Complete discharge documentation", note:"Discuss with your supervisor and note this in the discharge summary. Update SRA/VRA and CGI. Complete the discharge summary within 10 days (SmartText 2101600002). Cosign to Erin Li or the covering attending MD. Send a discharge letter to the legal guardian.", next:"b_end_dispo" },
+  b_end_dispo:{ type:"end", tone:"alert", badge:"Case closes — ACS involved", title:"Present at dispo", note:"All documentation — including the ACS paperwork — must be complete before presenting.\n\nQuestions about dispo? Reach out to Erin Li and Alexza Gutierrez before signing up for a slot." }
+};
+
+let path = [START];
+
+function currentNode(){ return NODES[path[path.length-1]]; }
+
+const app = document.getElementById("app");
+
+function render(){
+  const node = currentNode();
+  const tone = node.tone || "neutral";
+
+  const railHtml = path.map((key,i)=>{
+    const n = NODES[key];
+    const isCurrent = i === path.length-1;
+    const isEnd = n.type === "end";
+    const toneClass = n.tone === "alert" ? "alert" : "";
+    return `<li class="rail-step ${isCurrent?"current":"done"} ${isEnd?"end":""} ${toneClass}">${n.title}</li>`;
+  }).join("");
+
+  let actionsHtml = "";
+  if(node.type === "decision"){
+    actionsHtml = node.options.map(opt=>`<button class="btn btn-primary" data-next="${opt.next}">${opt.label}</button>`).join("");
+  } else if(node.type === "action"){
+    actionsHtml = `<button class="btn btn-primary" data-next="${node.next}">Continue</button>`;
+  } else if(node.type === "end"){
+    actionsHtml = `<button class="btn btn-outline" data-restart="1">Start over</button>`;
+  }
+
+  const kicker = node.type === "end" ? "Outcome" : (node.type === "decision" ? "Decision point" : "Do this next");
+
+  app.innerHTML = `
+    <header class="top">
+      <div class="brand">
+        <span class="eyebrow">CFI OPD Clinical Guide</span>
+        <span class="name">Attendance Pathway</span>
+      </div>
+      <button class="restart-link" data-restart="1">Start over</button>
+    </header>
+    <div class="intro">
+      <h1>Missed appointments, step by step</h1>
+      <p>Answer a few questions to see what to document, when to escalate, and when dispo comes into it.</p>
+    </div>
+    <div class="wizard">
+      <nav class="rail" aria-label="Progress">
+        <p class="rail-title">Path so far</p>
+        <div class="rail-line" aria-hidden="true"></div>
+        <ol style="list-style:none;margin:0;padding:0;">${railHtml}</ol>
+      </nav>
+      <div class="stage tone-${tone}">
+        <span class="stage-kicker">${kicker}</span>
+        ${node.type === "end" ? `<span class="end-badge">${node.badge || "Outcome"}</span>` : ""}
+        <h2>${node.title}</h2>
+        ${node.note ? `<p class="note">${node.note}</p>` : ""}
+        <div class="actions">${actionsHtml}</div>
+        <div class="footer-nav">
+          <button class="back-link" data-back="1" ${path.length<=1 ? "style='visibility:hidden'" : ""}>&larr; Back</button>
+        </div>
+      </div>
+    </div>
+    <p class="source-note">Based on the CFI OPD Operational Guide — Lateness/No-Shows/Cancellations, Attendance Contracts and Warning Letters, No-Show Protocol for Elevated Risk, Crisis Protocol, Activating EMS, ACS/SCR Call, and Discharge and Off-Service.</p>
+  `;
+
+  app.querySelectorAll("[data-next]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{ path.push(btn.getAttribute("data-next")); render(); });
+  });
+  const backBtn = app.querySelector("[data-back]");
+  if(backBtn) backBtn.addEventListener("click", ()=>{ if(path.length>1){ path.pop(); render(); } });
+  app.querySelectorAll("[data-restart]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{ path=[START]; render(); });
+  });
+}
+
+render();
+</script>
+</body>
+</html>
